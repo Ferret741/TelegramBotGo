@@ -111,6 +111,10 @@ type Telegram struct {
     // The message string that will be sent
     Message string
 
+    // The message ID to which we plan on responding (if there
+    // is one)
+    MessageThreadID string
+
     // The channel ID. Typically for channels this will be an
     // integer beginning in -100. Copy/pasting an element from
     // a channel in the webUI will provide you with the channel
@@ -143,6 +147,10 @@ func populateTelegramConfig(telegram *Telegram) {
             case "--message", "-m":
                 verifyArgsLength(index, value)
                 telegram.Message = os.Args[index+1]
+
+            case "--topic-id", "-T":
+                verifyArgsLength(index, value)
+                telegram.MessageThreadID = os.Args[index+1]
 
             case "--token", "-t":
                 verifyArgsLength(index, value)
@@ -243,10 +251,11 @@ func output(message, level string){
 // --------------------------------------------------
 // Set defaults for the Telegram object
 func (t *Telegram) setDefaults(){
-    t.BaseURL    = "https://api.telegram.org/"
-    t.Token      = t.getTokenFromEnvironment()
-    t.Message    = ""
-    t.ChannelID  = ""
+    t.BaseURL           = "https://api.telegram.org/"
+    t.Token             = t.getTokenFromEnvironment()
+    t.Message           = ""
+    t.MessageThreadID   = ""
+    t.ChannelID         = ""
 }
 
 
@@ -293,6 +302,12 @@ func (t *Telegram) sendMessage(message string) {
 
         // Set the chat_id as current user
         params.Add("chat_id", channel_id)
+
+        // Set the message thread ID if it is populated
+        if len(t.MessageThreadID) > 0 {
+            fmt.Printf("Found message thread id: %s\n", t.MessageThreadID)
+            params.Add("message_thread_id",t.MessageThreadID)
+        }
 
         // Send the request for dispatching
         resp, err := sendHttpPostFormRequest(full_url, params)
