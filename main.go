@@ -315,10 +315,10 @@ func (t *Telegram) sendMessage(message string) {
             t.MessageThreadID = channel_parts[1]
 
             // Add the thread message id to the telegram object. We
-            // probably don't need to do that here and remove the 
+            // probably don't need to do that here and remove the
             // object attribute unless we plan on using it some other
             // place in the program. We could simply refer to it
-            // as channel_parts[1], and then not worry about 
+            // as channel_parts[1], and then not worry about
             // unsetting it.
             params.Add("message_thread_id", t.MessageThreadID)
         }
