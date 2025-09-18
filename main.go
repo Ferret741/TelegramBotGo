@@ -181,6 +181,7 @@ func populateTelegramConfig(telegram *Telegram) {
 
             case "--help","-h":
                 fmt.Printf(HELP_PAGE, os.Args[0], os.Args[0], os.Args[0])
+                os.Exit(0)
         }
     }
 }
