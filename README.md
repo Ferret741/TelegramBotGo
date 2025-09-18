@@ -1,7 +1,7 @@
 ## Usage
 
 ~~~
-Usage /tmp/go-build2787620491/b001/exe/main <options>
+Usage PROG <options>
 
 + ================================================================================================ +
 | Required Arguments                                                                               |
@@ -61,8 +61,8 @@ Usage /tmp/go-build2787620491/b001/exe/main <options>
 Examples:
 
    Send to #channel_name_1, using a token provided in a file
-   $ /tmp/go-build2787620491/b001/exe/main --token file:/tmp/telegram.token --channel-id '-1005555555' --message 'This is a test message'
+   $ PROG --token file:/tmp/telegram.token --channel-id '-1005555555' --message 'This is a test message'
 
    Send a message to two different channels, using a token provided by environment variable
-   $ /tmp/go-build2787620491/b001/exe/main --token env --target '-10033333333,-10088888888' --message 'Please check alerts!!'
+   $ PROG --token env --target '-10033333333,-10088888888' --message 'Please check alerts!!'
 ~~~
