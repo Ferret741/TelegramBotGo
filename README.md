@@ -61,8 +61,8 @@ Usage PROG <options>
 Examples:
 
    Send to #channel_name_1, using a token provided in a file
-   $ PROG --token file:/tmp/telegram.token --channel-id '-1005555555' --message 'This is a test message'
+   $ PROG --token file:/tmp/telegram.token --channel-id -1005555555 --message 'This is a test message'
 
    Send a message to two different channels, using a token provided by environment variable
-   $ PROG --token env --target '-10033333333,-10088888888' --message 'Please check alerts!!'
+   $ PROG --channel-id env --target -10033333333,-10088888888 --message 'Please check alerts!!'
 ~~~
