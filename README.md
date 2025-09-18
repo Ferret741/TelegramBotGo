@@ -1,7 +1,7 @@
 ## Usage
 
 ~~~
-Usage /HOME/code/bin/TelegramBotGo-18Sep2025-104316 <options>
+Usage /tmp/go-build2787620491/b001/exe/main <options>
 
 + ================================================================================================ +
 | Required Arguments                                                                               |
@@ -30,7 +30,8 @@ Usage /HOME/code/bin/TelegramBotGo-18Sep2025-104316 <options>
 | --channel      |  -c   | A comma-delimited list of channel IDs that will receive the message.    |
 | --channel-id   |       | The channel IDs are typically an integer beginning with -100 and        |
 |                |       | can be obtained by copy/pasting an element from a chennl in the webUI,  |
-|                |       | or using the Json Dump Bot                                              |
+|                |       | or using the Json Dump Bot. This also accepts underscore variants that  |
+|                |       | are common for forum/thread/topics (e.g. -10011111111_800)              |
 |                |       |                                                                         |
 |                |       | Example: --target -1001111111111,-100222222222                          |
 + -------------- + ----- - ----------------------------------------------------------------------- +
@@ -60,8 +61,8 @@ Usage /HOME/code/bin/TelegramBotGo-18Sep2025-104316 <options>
 Examples:
 
    Send to #channel_name_1, using a token provided in a file
-   $ /HOME/code/bin/TelegramBotGo-18Sep2025-104316 --token file:/tmp/telegram.token --channel-id '-1005555555' --message 'This is a test message'
+   $ /tmp/go-build2787620491/b001/exe/main --token file:/tmp/telegram.token --channel-id '-1005555555' --message 'This is a test message'
 
    Send a message to two different channels, using a token provided by environment variable
-   $ /HOME/code/bin/TelegramBotGo-18Sep2025-104316 --token env --target '-10033333333,-10088888888' --message 'Please check alerts!!'
+   $ /tmp/go-build2787620491/b001/exe/main --token env --target '-10033333333,-10088888888' --message 'Please check alerts!!'
 ~~~
