@@ -300,14 +300,34 @@ func (t *Telegram) sendMessage(message string) {
             params.Del("chat_id")
         }
 
-        // Set the chat_id as current user
-        params.Add("chat_id", channel_id)
-
-        // Set the message thread ID if it is populated
-        if len(t.MessageThreadID) > 0 {
-            fmt.Printf("Found message thread id: %s\n", t.MessageThreadID)
-            params.Add("message_thread_id",t.MessageThreadID)
+        // Unset the message_thread_id header value, if it is set
+        if params.Has("message_thread_id") {
+            params.Del("message_thread_id")
+            t.MessageThreadID = ""
         }
+
+
+        // Assume that if the channel_id has an underscore, there is
+        // reference to a message_thread_id.
+        if strings.Contains(channel_id,"_") {
+
+            // Split the channel into two portions, the channel_id and
+            //the message thread id
+            channel_parts    := strings.Split(channel_id,"_")
+            channel_id        = channel_parts[0]
+            t.MessageThreadID = channel_parts[1]
+
+            // Add the thread message id to the telegram object. We
+            // probably don't need to do that here and remove the 
+            // object attribute unless we plan on using it some other
+            // place in the program. We could simply refer to it
+            // as channel_parts[1], and then not worry about 
+            // unsetting it.
+            params.Add("message_thread_id", t.MessageThreadID)
+        }
+
+        // Set the chat_id as current channel ID
+        params.Add("chat_id", channel_id)
 
         // Send the request for dispatching
         resp, err := sendHttpPostFormRequest(full_url, params)
