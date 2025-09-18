@@ -59,7 +59,8 @@ var HELP_PAGE string = "" +
     "| --channel      |  -c   | A comma-delimited list of channel IDs that will receive the message.    |\n" +
     "| --channel-id   |       | The channel IDs are typically an integer beginning with -100 and        |\n" +
     "|                |       | can be obtained by copy/pasting an element from a chennl in the webUI,  |\n" +
-    "|                |       | or using the Json Dump Bot                                              |\n" +
+    "|                |       | or using the Json Dump Bot. This also accepts underscore variants that  |\n" +
+    "|                |       | are common for forum/thread/topics (e.g. -10011111111_800)              |\n" +
     "|                |       |                                                                         |\n" +
     "|                |       | \x1B[2;31mExample: --target -1001111111111,-100222222222                          \x1B[0;31m|\n" +
     "+ -------------- + ----- - ----------------------------------------------------------------------- +\n" +
@@ -147,10 +148,6 @@ func populateTelegramConfig(telegram *Telegram) {
             case "--message", "-m":
                 verifyArgsLength(index, value)
                 telegram.Message = os.Args[index+1]
-
-            case "--topic-id", "-T":
-                verifyArgsLength(index, value)
-                telegram.MessageThreadID = os.Args[index+1]
 
             case "--token", "-t":
                 verifyArgsLength(index, value)
