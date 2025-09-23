@@ -35,7 +35,8 @@ Usage PROG <options>
 |                |       |                                                                         |
 |                |       | Example: --target -1001111111111,-100222222222                          |
 + -------------- + ----- - ----------------------------------------------------------------------- +
-| --message      |  -m   | The message to send                                                     |
+| --message      |  -m   | The message to send. This can be given multiple times to send more than |
+|                |       | one message in a single command.                                        |
 |                |       |                                                                         |
 |                |       | Example: --message 'Test message :exclamation:'                         |
 + -------------- + ----- + ----------------------------------------------------------------------- +
