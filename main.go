@@ -108,19 +108,24 @@ var HELP_PAGE string = "" +
 // Types
 type Telegram struct {
 
+
     // This is the token used for bot authorisation. It can be
     // obtained from the bot registration with BotFather
     Token string
 
+
     // The base URL from which all other API events are based
     BaseURL string
 
-    // The message string that will be sent
+
+    // A collection of messages that should be sent
     Messages []string
+
 
     // The message ID to which we plan on responding (if there
     // is one)
     MessageThreadID string
+
 
     // The channel ID. Typically for channels this will be an
     // integer beginning in -100. Copy/pasting an element from
@@ -138,6 +143,7 @@ type Telegram struct {
 // Take the CLI arguments and
 func populateTelegramConfig(telegram *Telegram) {
 
+
     // Verify that the array length is of sufficient
     // length for any switch requiring an argument
     // e.g. len(os.Args) must be at least index+2
@@ -148,14 +154,16 @@ func populateTelegramConfig(telegram *Telegram) {
         }
     }
 
+
     // Iterate over the CLI argument list
     for index, value := range os.Args {
+
 
         switch value {
             case "--message", "-m":
                 verifyArgsLength(index, value)
                 telegram.Messages = append(telegram.Messages, os.Args[index+1])
-                // telegram.Message = os.Args[index+1]
+
 
             case "--token", "-t":
                 verifyArgsLength(index, value)
@@ -164,9 +172,11 @@ func populateTelegramConfig(telegram *Telegram) {
                 // see if there is a TELEGRAM_BOT_TOKEN entry
                 if strings.ToUpper(os.Args[index+1]) == "ENV" {
 
+
                     // Entry was found: assign telegram instance token
                     if token := telegram.getTokenFromEnvironment(); token != "" {
                         telegram.Token = token
+
 
                     // Entry was not found: Exit after informing the user
                     } else {
@@ -174,11 +184,13 @@ func populateTelegramConfig(telegram *Telegram) {
                         log.Fatal(msg)
                     }
 
+
                 // Assume that the token was provided on the
                 // command line argument list
                 } else if strings.HasPrefix(os.Args[index+1], "file:") {
                     token_file := strings.Split(os.Args[index+1],":")[1]
                     telegram.read_token_file(token_file)
+
 
                 // Assume that the token was provided on the
                 // command line argument list
@@ -204,6 +216,7 @@ func populateTelegramConfig(telegram *Telegram) {
 // Perform the actual sending of an HTTP request
 func sendHttpPostFormRequest(send_url string, send_values url.Values) (*http.Response, error) {
 
+
     // Perform the request and obtain the results
     return http.PostForm(send_url, send_values)
 }
@@ -214,11 +227,14 @@ func sendHttpPostFormRequest(send_url string, send_values url.Values) (*http.Res
 // to define debugging levels later on
 func output(message, level string){
 
+
     // Default colour
     var colour string = "\x1B[1;34m"
 
+
     // Boolean flag for printing the message
     var print_me bool = true
+
 
     // Conditionalise based off the given level
     switch strings.ToUpper(level) {
@@ -239,8 +255,10 @@ func output(message, level string){
             colour = "\x1B[1;34m"
     }
 
+
     // Format the message
     message = fmt.Sprintf("%s%s\x1B[0m\n",colour,message)
+
 
     // If the print_me flag is true, then print
     // the message
@@ -270,6 +288,7 @@ func (t *Telegram) setDefaults(){
 // Telegram object are present
 func (t *Telegram) verifyFields(){
 
+
     // These are the fields that must have a value, if any
     // of them do not, then we should fail out
     switch {
@@ -290,17 +309,18 @@ func (t *Telegram) verifyFields(){
 // Send a message
 func (t *Telegram) sendMessages() {
 
+
     // Create the full URL
     full_url := fmt.Sprintf("%sbot%s/sendMessage", t.BaseURL, t.Token)
+
 
     // Create a mapping for the params
     params := url.Values{}
     params.Set("parse_mode", "MarkdownV2")
 
+
     // Iterate over the list of targets
     for _, channel_id := range strings.Split(t.ChannelID, ",") {
-
-
 
 
         // Unset the message_thread_id header value, if it is set
@@ -321,6 +341,7 @@ func (t *Telegram) sendMessages() {
             channel_id        = channel_parts[0]
             t.MessageThreadID = channel_parts[1]
 
+
             // Add the thread message id to the telegram object. We
             // probably don't need to do that here and remove the
             // object attribute unless we plan on using it some other
@@ -330,14 +351,18 @@ func (t *Telegram) sendMessages() {
             params.Add("message_thread_id", t.MessageThreadID)
         }
 
+
         // Set the chat_id as current channel ID
         params.Set("chat_id", channel_id)
+
 
         // Iterate over all the message in self.Messages slice
         for _, messageValue := range t.Messages {
 
+
             // Set the message text from the messages slice
             params.Set("text", messageValue)
+
 
             // Send the request for dispatching
             resp, err := sendHttpPostFormRequest(full_url, params)
@@ -345,19 +370,24 @@ func (t *Telegram) sendMessages() {
                 fmt.Printf("Error encountered during HTTP POST request: %s", err)
             }
 
+
             // Consume the body here and close the Body
             content, _ := io.ReadAll(resp.Body)
             resp.Body.Close()
 
+
             // Perform tasks based on return status code
             switch resp.StatusCode {
+
 
                 // Don't need to do anything here!
                 case 200:
 
+
                 // Anything aside from a 200 status code is
                 // probably not good!!
                 default:
+
 
                     // JSON type to represented comes from testing
                     // Message: {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
@@ -370,7 +400,9 @@ func (t *Telegram) sendMessages() {
                         Hello string
                     }
 
+
                     var message TelegramErrorMessage
+
 
                     // Perform the unmarshaling here and store the
                     // JSON values in the message struct
@@ -378,6 +410,7 @@ func (t *Telegram) sendMessages() {
                     if err_json != nil {
                         fmt.Printf("Error encountered during JSON unmarshaling: %s", err_json)
                     }
+
 
                     // Print out the error
                     fmt.Printf("<channel_id: %s>: [%d] %s\n", channel_id, message.Error_code, message.Description)
@@ -392,11 +425,14 @@ func (t *Telegram) sendMessages() {
 // Read a token from a file
 func (t *Telegram) read_token_file(token_file string) {
 
+
     // Defalt value for the token string
     var token_string string = ""
 
+
     // Read contents from the file
     read_token_string, read_token_error := os.ReadFile(token_file)
+
 
     // Handle errors here
     // The file does not exist
@@ -404,14 +440,17 @@ func (t *Telegram) read_token_file(token_file string) {
         err_msg := fmt.Sprintf(ERR_TOKEN_FILE_NOT_EXIST, token_file)
         log.Fatal(err_msg)
 
+
     // Some other error exists
     } else if read_token_error != nil {
         err_msg := fmt.Sprintf(ERR_TOKEN_FILE_READ, token_file, read_token_error)
         log.Fatal(err_msg)
     }
 
+
     // Convert byte array to string and trim
     token_string = strings.TrimSpace(string(read_token_string))
+
 
     // Set the token string
     t.Token = token_string
@@ -422,13 +461,16 @@ func (t *Telegram) read_token_file(token_file string) {
 // Obtain token from environment variables
 func (t *Telegram) getTokenFromEnvironment() string {
 
+
     // Set a default
     var token_string = ""
+
 
     // Set the string if it is found
     if envVar, isFound := os.LookupEnv(TOKEN_ENVVAR_NAME); isFound {
        token_string = envVar
     }
+
 
     // Return whatever it is that we have
     return token_string
@@ -441,21 +483,25 @@ func (t *Telegram) getTokenFromEnvironment() string {
 // Main Body
 func main(){
 
+
     // Create a new configuration instance
     TelegramInstance := &Telegram{}
+
 
     // Set the values for the configuration instance
     TelegramInstance.setDefaults()
 
+
     // Obtain additional telegram stuff from provided CLI argments
     populateTelegramConfig(TelegramInstance)
+
 
     // Ensure that the proper fields have been set
     TelegramInstance.verifyFields()
 
+
     // Send the message
     TelegramInstance.sendMessages()
-
 }
 
 
