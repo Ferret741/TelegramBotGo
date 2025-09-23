@@ -260,7 +260,6 @@ func output(message, level string){
 func (t *Telegram) setDefaults(){
     t.BaseURL           = "https://api.telegram.org/"
     t.Token             = t.getTokenFromEnvironment()
-    // t.Messages          = ""
     t.MessageThreadID   = ""
     t.ChannelID         = ""
 }
@@ -274,8 +273,6 @@ func (t *Telegram) verifyFields(){
     // These are the fields that must have a value, if any
     // of them do not, then we should fail out
     switch {
-        // NEEDED: Need to configure length here
-        // TODELETE // case t.Message == "":
         case len(t.Messages) == 0:
             log.Fatal(ERR_MESSAGE_NOT_PROVIDED)
 
@@ -291,7 +288,6 @@ func (t *Telegram) verifyFields(){
 
 // --------------------------------------------------
 // Send a message
-// TODELETE // func (t *Telegram) sendMessage(message string) {
 func (t *Telegram) sendMessages() {
 
     // Create the full URL
@@ -300,17 +296,11 @@ func (t *Telegram) sendMessages() {
     // Create a mapping for the params
     params := url.Values{}
     params.Set("parse_mode", "MarkdownV2")
-    // TODELETE // params.Set("text", "")
-    // TODELETE // params.Set("chat_id","")
 
     // Iterate over the list of targets
     for _, channel_id := range strings.Split(t.ChannelID, ",") {
 
 
-        // TODELETE // // Unset the chat_id POST value if it is set
-        // TODELETE // if params.Has("chat_id") {
-        // TODELETE //     params.Del("chat_id")
-        // TODELETE // }
 
 
         // Unset the message_thread_id header value, if it is set
@@ -464,7 +454,6 @@ func main(){
     TelegramInstance.verifyFields()
 
     // Send the message
-    // TO DELETE // TelegramInstance.sendMessage(TelegramInstance.Message)
     TelegramInstance.sendMessages()
 
 }
