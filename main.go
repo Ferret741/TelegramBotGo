@@ -4,6 +4,7 @@ package main
 
 
 
+
 // ===========================================================================
 // Import
 import (
@@ -16,6 +17,8 @@ import (
     "io"
     "encoding/json"
 )
+
+
 
 
 // ===========================================================================
@@ -64,7 +67,8 @@ var HELP_PAGE string = "" +
     "|                |       |                                                                         |\n" +
     "|                |       | \x1B[2;31mExample: --target -1001111111111,-100222222222                          \x1B[0;31m|\n" +
     "+ -------------- + ----- - ----------------------------------------------------------------------- +\n" +
-    "| --message      |  -m   | The message to send                                                     |\n" +
+    "| --message      |  -m   | The message to send. This can be given multiple times to send more than |\n" +
+    "|                |       | one message in a single command.                                        |\n" +
     "|                |       |                                                                         |\n" +
     "|                |       | \x1B[2;31mExample: --message 'Test message :exclamation:'                         \x1B[0;31m|\n" +
     "+ -------------- + ----- + ----------------------------------------------------------------------- +\n" +
@@ -98,6 +102,8 @@ var HELP_PAGE string = "" +
     "\n"
 
 
+
+
 // ===========================================================================
 // Types
 type Telegram struct {
@@ -110,7 +116,7 @@ type Telegram struct {
     BaseURL string
 
     // The message string that will be sent
-    Message string
+    Messages []string
 
     // The message ID to which we plan on responding (if there
     // is one)
@@ -122,6 +128,7 @@ type Telegram struct {
     // ID, or you can use Json Dump Bot
     ChannelID string
 }
+
 
 
 
@@ -147,7 +154,8 @@ func populateTelegramConfig(telegram *Telegram) {
         switch value {
             case "--message", "-m":
                 verifyArgsLength(index, value)
-                telegram.Message = os.Args[index+1]
+                telegram.Messages = append(telegram.Messages, os.Args[index+1])
+                // telegram.Message = os.Args[index+1]
 
             case "--token", "-t":
                 verifyArgsLength(index, value)
@@ -242,6 +250,8 @@ func output(message, level string){
 }
 
 
+
+
 // ===========================================================================
 // Methods
 
@@ -250,7 +260,7 @@ func output(message, level string){
 func (t *Telegram) setDefaults(){
     t.BaseURL           = "https://api.telegram.org/"
     t.Token             = t.getTokenFromEnvironment()
-    t.Message           = ""
+    // t.Messages          = ""
     t.MessageThreadID   = ""
     t.ChannelID         = ""
 }
@@ -264,7 +274,9 @@ func (t *Telegram) verifyFields(){
     // These are the fields that must have a value, if any
     // of them do not, then we should fail out
     switch {
-        case t.Message == "":
+        // NEEDED: Need to configure length here
+        // TODELETE // case t.Message == "":
+        case len(t.Messages) == 0:
             log.Fatal(ERR_MESSAGE_NOT_PROVIDED)
 
         case t.Token == "":
@@ -279,7 +291,8 @@ func (t *Telegram) verifyFields(){
 
 // --------------------------------------------------
 // Send a message
-func (t *Telegram) sendMessage(message string) {
+// TODELETE // func (t *Telegram) sendMessage(message string) {
+func (t *Telegram) sendMessages() {
 
     // Create the full URL
     full_url := fmt.Sprintf("%sbot%s/sendMessage", t.BaseURL, t.Token)
@@ -287,15 +300,18 @@ func (t *Telegram) sendMessage(message string) {
     // Create a mapping for the params
     params := url.Values{}
     params.Set("parse_mode", "MarkdownV2")
-    params.Add("text", message)
+    // TODELETE // params.Set("text", "")
+    // TODELETE // params.Set("chat_id","")
 
     // Iterate over the list of targets
     for _, channel_id := range strings.Split(t.ChannelID, ",") {
 
-        // Unset the chat_id POST value if it is set
-        if params.Has("chat_id") {
-            params.Del("chat_id")
-        }
+
+        // TODELETE // // Unset the chat_id POST value if it is set
+        // TODELETE // if params.Has("chat_id") {
+        // TODELETE //     params.Del("chat_id")
+        // TODELETE // }
+
 
         // Unset the message_thread_id header value, if it is set
         if params.Has("message_thread_id") {
@@ -307,6 +323,7 @@ func (t *Telegram) sendMessage(message string) {
         // Assume that if the channel_id has an underscore, there is
         // reference to a message_thread_id.
         if strings.Contains(channel_id,"_") {
+
 
             // Split the channel into two portions, the channel_id and
             //the message thread id
@@ -324,51 +341,58 @@ func (t *Telegram) sendMessage(message string) {
         }
 
         // Set the chat_id as current channel ID
-        params.Add("chat_id", channel_id)
+        params.Set("chat_id", channel_id)
 
-        // Send the request for dispatching
-        resp, err := sendHttpPostFormRequest(full_url, params)
-        if err != nil {
-            fmt.Printf("Error encountered during HTTP POST request: %s", err)
-        }
+        // Iterate over all the message in self.Messages slice
+        for _, messageValue := range t.Messages {
 
-        // Consume the body here and close the Body
-        content, _ := io.ReadAll(resp.Body)
-        resp.Body.Close()
+            // Set the message text from the messages slice
+            params.Set("text", messageValue)
 
-        // Perform tasks based on return status code
-        switch resp.StatusCode {
+            // Send the request for dispatching
+            resp, err := sendHttpPostFormRequest(full_url, params)
+            if err != nil {
+                fmt.Printf("Error encountered during HTTP POST request: %s", err)
+            }
 
-            // Don't need to do anything here!
-            case 200:
+            // Consume the body here and close the Body
+            content, _ := io.ReadAll(resp.Body)
+            resp.Body.Close()
 
-            // Anything aside from a 200 status code is
-            // probably not good!!
-            default:
+            // Perform tasks based on return status code
+            switch resp.StatusCode {
 
-                // JSON type to represented comes from testing
-                // Message: {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
-                // Create a struct type that will hold the
-                // expected values from the body
-                type TelegramErrorMessage struct {
-                    Ok  bool
-                    Error_code int
-                    Description string
-                    Hello string
-                }
+                // Don't need to do anything here!
+                case 200:
 
-                var message TelegramErrorMessage
+                // Anything aside from a 200 status code is
+                // probably not good!!
+                default:
 
-                // Perform the unmarshaling here and store the
-                // JSON values in the message struct
-                err_json := json.Unmarshal(content, &message)
-                if err_json != nil {
-                    fmt.Printf("Error encountered during JSON unmarshaling: %s", err_json)
-                }
+                    // JSON type to represented comes from testing
+                    // Message: {"ok":false,"error_code":400,"description":"Bad Request: chat not found"}
+                    // Create a struct type that will hold the
+                    // expected values from the body
+                    type TelegramErrorMessage struct {
+                        Ok  bool
+                        Error_code int
+                        Description string
+                        Hello string
+                    }
 
-                // Print out the error
-                fmt.Printf("<channel_id: %s>: [%d] %s\n", channel_id, message.Error_code, message.Description)
+                    var message TelegramErrorMessage
 
+                    // Perform the unmarshaling here and store the
+                    // JSON values in the message struct
+                    err_json := json.Unmarshal(content, &message)
+                    if err_json != nil {
+                        fmt.Printf("Error encountered during JSON unmarshaling: %s", err_json)
+                    }
+
+                    // Print out the error
+                    fmt.Printf("<channel_id: %s>: [%d] %s\n", channel_id, message.Error_code, message.Description)
+
+            }
         }
     }
 }
@@ -422,6 +446,7 @@ func (t *Telegram) getTokenFromEnvironment() string {
 
 
 
+
 // ===========================================================================
 // Main Body
 func main(){
@@ -439,7 +464,8 @@ func main(){
     TelegramInstance.verifyFields()
 
     // Send the message
-    TelegramInstance.sendMessage(TelegramInstance.Message)
+    // TO DELETE // TelegramInstance.sendMessage(TelegramInstance.Message)
+    TelegramInstance.sendMessages()
 
 }
 
